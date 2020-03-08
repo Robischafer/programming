@@ -1,13 +1,8 @@
-# programming
-MsF course  
-
+# programming 
 repository for the Master in finance course programming
-
-# Sylabus
 
 # Objectifs
 This is a fast-paced introductory course to the Python and C++ programming languages. Moreover, it will cover topics from parallel computing, high-performance computing, and cloud computing.
-
 
 The course is intended for those with a relatively little programming background, though prior programming experience will make it easier, and those with previous experience will still learn specific constructs and concepts.
 
@@ -37,7 +32,7 @@ Contenus
 - MPI, OpenMP, Cuda, OpenACC
 - Libraries for scientific computing
 
-Références
+# Références
 John V. Guttag, Introduction to Computation and Programming Using Python, Revised And Expanded Edition, https://mitpress.mit.edu/books/introduction-computation-and-programming-using-python-revised-and-expanded-edition
 
 Hans Petter Langtangen, A Primer on Scientific Programming with Python, https://www.springer.com/us/book/9783662498866
@@ -52,7 +47,7 @@ No strict pre-requirement is necessary apart from a personal interest in computi
 This FAST-PACED course will consist of both lectures, software tutorials, and exercises. For the tutorials and exercises, you will need to bring a laptop computer to each class. If you do not have a laptop computer, you can still follow the class but please contact the professor to help you find a solution for effective participation in the practical hands-on exercises.
 
 
-Evaluation
+# Evaluation
 1ère tentative
 Examen:
 Sans examen (cf. modalités)  
