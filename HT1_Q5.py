@@ -52,7 +52,7 @@ def stepmatrix(maze):
     Y = [0]
 
     # continue until all cell have been visited
-    while not visited.all():
+    while not X:
         x = X[0]
         y = Y[0]
         for i in range(0, 3):
@@ -83,8 +83,6 @@ def stepmatrix(maze):
                         sm[xx][yy] = sm[xx, yy + 1] + 1
                         visited[xx][yy] = True
                 elif visited[xx][yy] == False and maze[xx][yy] == 0:
-                    X = np.append(X, xx)
-                    Y = np.append(Y, yy)
                     visited[xx][yy] = True
 
             except:
