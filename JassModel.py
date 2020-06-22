@@ -3,6 +3,13 @@ import random
 import pygame
 
 
+# possible improvement:
+# implement trump card (ai_play:valid_card, new method jass.game_trump
+#                       check_round_winner(), add_round_score())
+# implement hand sorting for player
+# implement validation and error handling
+# implement switch case
+
 class Card:
 
     def __init__(self, rank, suit):
@@ -94,6 +101,9 @@ class Hand:
     def __getitem__(self, index):
         return self.hand[index]
 
+    def __len__(self):
+        return len(self.hand)
+
 
 class Deck:
 
@@ -119,7 +129,7 @@ class Deck:
         # return randomized deck
         temp = []
         L = list(self)
-        for i in range(0, 35):
+        for i in range(0, 36):
             draw = random.choice(L)
             temp.append(draw)
             L.remove(draw)
@@ -132,7 +142,7 @@ class Deck:
 class Jass:
 
     def __init__(self):
-        self.deck = Deck().random_order()
+        self.deck = Deck()
         self.score = [0, 0]
         self.board = []
         self.round = 0
@@ -140,10 +150,21 @@ class Jass:
         self.game_first_player = None
         self.round_first_player = None
 
+        self.hand_1 = None
+        self.hand_2 = None
+        self.hand_3 = None
+        self.hand_4 = None
+
     def shuffle(self):
         # method to shuffle the deck of card
         # between game
         self.deck = Deck().random_order()
+
+        self.hand_1 = Hand(self.deck[0:9])
+        self.hand_2 = Hand(self.deck[9:18])
+        self.hand_3 = Hand(self.deck[18:27])
+        self.hand_4 = Hand(self.deck[27:36])
+
         return self.deck
 
     def select_game_first(self):
@@ -156,8 +177,9 @@ class Jass:
             # find player with 7 of diamond in hand
             # Card(7, 0)
             L = []
-            for i in range(0, 35):
+            for i in range(0, 36):
                 L.append(int(list(self.deck)[i]))
+
             if L.index(73) <= 8:
                 self.game_first_player = 0
             elif L.index(73) <= 17:
@@ -179,32 +201,36 @@ class Jass:
             self.round = 0
         else:
             self.round_first_player += self.check_round_winner()
+            self.round_first_player = self.round_first_player % 4
             self.round += 1
 
-        return self.round_first_player % 4
+        return self.round_first_player
 
-    def play(self, hand, board):
+    def play(self, hand, card_selected):
 
-        return board
+        hand = [card for card in hand if card != card_selected]
+        self.board.append(card_selected)
 
-    def ai_play(self, hand, board):
+        return hand
+
+    def ai_play(self, hand):
 
         # 1st player can play anything
-        if not board:
-            valid_card = [card for card in hand]
+        if not self.board:
+            valid_card = [card for card in list(hand)]
         # other player must player either trump card
         # or the same card color as the 1st player
-        elif board and [card for card in hand if card.suit == board[0].suit]:
-            valid_card = [card for card in hand if card.suit == board[0].suit]
+        elif self.board and [card for card in list(hand) if card.suit == self.board[0].suit]:
+            valid_card = [card for card in list(hand) if card.suit == self.board[0].suit]
         # when players cannot play any cards, restriction
         # are lifted and they can play anything
         else:
-            valid_card = [card for card in hand]
+            valid_card = [card for card in list(hand)]
 
         played_card = random.choice(valid_card)
         hand = [card for card in hand if card != played_card]
         self.board.append(played_card)
-        return hand, self.board
+        return hand
 
     def check_round_winner(self):
         # return the position on the board who won
@@ -222,45 +248,49 @@ class Jass:
 
     def add_round_score(self):
         winner = self.check_round_winner()
-        b = self.board
-        round_score = 0
+        if self.round == 8:
+            round_score = 5
+        else:
+            round_score = 0
         for i in range(0, 4):
-            round_score += b[i].value
+            round_score += self.board[i].value
 
         if winner % 2 == 0:
             self.score[0] += round_score
         else:
             self.score[1] += round_score
 
+        # TO DO: if 157 -> 257
+
         return self.score
 
+    def play_round(self, card_selected):
+        # play a 9 round game
 
-# test
+        # TO DO: add order change
+        # here human player always play first
+        self.select_round_first()
+        self.board = []
 
-# game ini
-jass = Jass()
+        self.hand_1 = self.play(self.hand_1, card_selected)
+        self.hand_2 = self.ai_play(self.hand_2)
+        self.hand_3 = self.ai_play(self.hand_3)
+        self.hand_4 = self.ai_play(self.hand_4)
 
-hand_1 = Hand(jass.deck[0:8])
-hand_2 = Hand(jass.deck[9:17])
-hand_3 = Hand(jass.deck[18:26])
-hand_4 = Hand(jass.deck[27:35])
+        self.add_round_score()
 
-jass.select_game_first()
-jass.select_round_first()
+    def play_game(self, card_selected):
 
-# each player play
-jass.hand_1 = jass.ai_play(hand_1, jass.board)
-jass.hand_2 = jass.ai_play(hand_2, jass.board)
-jass.hand_3 = jass.ai_play(hand_3, jass.board)
-jass.hand_4 = jass.ai_play(hand_4, jass.board)
+        self.shuffle()
+        self.select_game_first()
+        self.round = 0
 
-for card in jass.board:
-    print(str(card))
-for card in hand_1:
-    print(str(card))
-len(list(hand_1))
+        for i in range(0, 9):
+            self.play_round(card_selected)
+            self.round += 1
 
-jass.check_round_winner()
-jass.add_round_score()
-jass.select_round_first()
-jass.board = []
+
+
+
+
+
