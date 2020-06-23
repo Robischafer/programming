@@ -149,6 +149,7 @@ class Jass:
         self.round = None
         self.game_first_player = None
         self.round_first_player = None
+        self.trump = None
 
         self.hand_1 = None
         self.hand_2 = None
@@ -234,14 +235,15 @@ class Jass:
 
     def check_round_winner(self):
         # return the position on the board who won
-        b = self.board
-        round_color = b[0].suit
-        highest_valid_card = b[0]
+        round_color = self.board[0].suit
+        if self.round == 0:
+            self.trump = round_color
+        highest_valid_card = self.board[0]
         winner = 0
         # find highest ranking card
         for i in range(1, 3):
-            if round_color == b[i].suit and highest_valid_card.rank < b[i].rank:
-                highest_valid_card = b[i]
+            if round_color == self.board[i].suit and highest_valid_card.rank < self.board[i].rank:
+                highest_valid_card = self.board[i]
                 winner = i
 
         return winner
@@ -288,9 +290,3 @@ class Jass:
         for i in range(0, 9):
             self.play_round(card_selected)
             self.round += 1
-
-
-
-
-
-

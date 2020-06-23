@@ -18,12 +18,12 @@ red = pygame.Color(255, 0, 0)
 blue = pygame.Color(0, 0, 255)
 green = pygame.Color(0, 255, 0)
 
+ENDSCORE = 1000
 
 class GameController:
 
     def __init__(self):
         self.jass = JassModel.Jass()
-        deck = JassModel.Deck()
         self.state = 0
         self.images = {}
         self.scale = 0.5
@@ -40,13 +40,12 @@ class GameController:
         loadSize = font.size("Loading...")
         loadLoc = (WIDTH / 2 - loadSize[0] / 2, HEIGHT / 2 - loadSize[1] / 2)
 
-        self.score = [0, 0]
         SCREEN.blit(self.background, (-320, -100))
         SCREEN.blit(loadText, loadLoc)
         pygame.display.flip()
 
         # draw game card
-        for card in deck:
+        for card in self.jass.deck:
             self.images[str(card)] = pygame.image.load(card.image_path).convert_alpha()
             self.images[str(card)] = pygame.transform.scale(self.images[str(card)],
                                                             (int(self.scale * self.cardSize[0]),
@@ -150,7 +149,6 @@ class GameController:
         self.player4Text = self.font.render("player 4", 1, black)
         self.player4Size = self.font.size("player 4")
 
-        # (self.youLoc[0], self.buffer + self.scale * self.cardSize[1]/2 - self.youSize[1]/2)
         self.playButton = self.font2.render(" Play ", 1, black)
         self.buttonSize = self.font2.size(" Play ")
 
@@ -187,12 +185,12 @@ class GameController:
                                 card_selected = self.jass.hand_1[i]
                         self.jass.play_round(card_selected)
                         self.round += 1
-                        self.display_board()
-                        if self.score[0] >= 100 or self.score[0] >= 100:
+                        if self.jass.score[0] >= ENDSCORE or self.jass.score[1] >= ENDSCORE:
                             self.state += 1
                             self.results_init()
                             return
                         if self.round == 9:
+                            self.jass.round = None
                             self.play_init()
                             return
 
@@ -217,18 +215,32 @@ class GameController:
         SCREEN.blit(self.player4Text, self.player4TextLoc)
 
         # display the text
-        SCREEN.blit(self.youText, self.youLoc)
         pygame.draw.rect(SCREEN, red, self.buttonRect)
         pygame.draw.rect(SCREEN, black, self.buttonRectOutline, 2)
         SCREEN.blit(self.playButton, self.buttonLoc)
 
         # display the scoreboard
         self.display_scoreboard()
+        self.display_board(WIDTH/3, HEIGHT/3)
 
         pygame.display.flip()
 
     def results_init(self):
-        pass
+        self.font = pygame.font.Font('font/Montserrat-Regular.otf', 25)
+        self.replaceButton = self.font2.render(" New Game ", 1, black)
+        self.buttonSize = self.font2.size(" New Game ")
+        self.buttonLoc = (WIDTH / 2 - self.buttonSize[0] / 2, HEIGHT / 2 - self.buttonSize[1] / 2)
+
+        self.game_results = self.jass.score
+
+        self.buttonRect = pygame.Rect(self.buttonLoc, self.buttonSize)
+        self.buttonRectOutline = pygame.Rect(self.buttonLoc, self.buttonSize)
+
+        self.jass.score = [0, 0]
+        self.jass.game_first_player = None
+        self.jass.round_first_player = None
+        self.jass.round = None
+        self.jass.board = []
 
     def results(self):
         for event in pygame.event.get():
@@ -246,6 +258,17 @@ class GameController:
 
                         return
 
+        # display background
+        SCREEN.blit(self.background, (-320, -100))
+
+        # display a play again button
+        pygame.draw.rect(SCREEN, red, self.buttonRect)
+        pygame.draw.rect(SCREEN, black, self.buttonRectOutline, 2)
+        SCREEN.blit(self.replaceButton, self.buttonLoc)
+
+        self.display_game_results()
+        pygame.display.flip()
+
     def new_game(self):
         self.state = 1
         self.play()
@@ -255,20 +278,26 @@ class GameController:
             SCREEN.blit(self.images[str(card)], (x, y))
             x += int(self.scale * self.cardSize[0])
 
-    def display_board(self):
-        x = WIDTH/2
-        for card in self.jass.board:
-            SCREEN.blit(self.images[str(card)], (WIDTH/2, HEIGHT/2))
+    def display_board(self, x, y):
+        for card in range(0, len(self.jass.board)):
+            SCREEN.blit(self.images[str(self.jass.board[card])], (x, y))
             x += int(self.scale * self.cardSize[0])
-        pygame.display.flip()
 
-    def display_scoreboard(self):
+    def display_scoreboard(self, x=WIDTH - 200, y=10):
         # create labels for each player
         self.Team1_score = self.font.render("Team 1: " + str(self.jass.score[0]), 1, black)
         self.Team2_score = self.font.render("Team 2: " + str(self.jass.score[1]), 1, black)
 
-        SCREEN.blit(self.Team1_score, (WIDTH - 200, 10))
-        SCREEN.blit(self.Team2_score, (WIDTH - 200, 40))
+        SCREEN.blit(self.Team1_score, (x, y))
+        SCREEN.blit(self.Team2_score, (x, y + 30))
+
+    def display_game_results(self, x=WIDTH/2 - 160, y=HEIGHT/2 - 100):
+        # create labels for each player
+        self.Team1_score = self.font.render("Team 1: " + str(self.game_results[0]), 1, black)
+        self.Team2_score = self.font.render("Team 2: " + str(self.game_results[1]), 1, black)
+
+        SCREEN.blit(self.Team1_score, (x, y))
+        SCREEN.blit(self.Team2_score, (x + 200, y))
 
 
 if __name__ == "__main__":
@@ -284,6 +313,12 @@ if __name__ == "__main__":
         FPS.tick(30)
 
 pygame.quit()
+
+
+
+
+
+
 
 
 
