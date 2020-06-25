@@ -4,8 +4,6 @@ import pygame
 
 
 # possible improvement:
-# implement trump card (ai_play:valid_card, new method jass.game_trump
-#                       check_round_winner(), add_round_score())
 # implement hand sorting for player
 # implement validation and error handling
 # implement switch case
@@ -103,7 +101,6 @@ class Hand:
 
     def __len__(self):
         return len(self.hand)
-
 
 class Deck:
 

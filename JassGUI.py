@@ -17,7 +17,10 @@ red = pygame.Color(255, 0, 0)
 blue = pygame.Color(0, 0, 255)
 green = pygame.Color(0, 255, 0)
 
+# score to end the game
 ENDSCORE = 1000
+# variable used in wait time
+PAUSE_TIME = 1500
 
 
 class GameController:
@@ -194,11 +197,12 @@ class GameController:
                             self.display_board()
                             self.display_hand()
                             pygame.display.flip()
+
+                            pygame.time.wait(PAUSE_TIME)
                             self.check_game_state()
                             return
 
                     elif self.jass.round_first_player == 1:
-
                         if mouseRect.colliderect(self.buttonRect):
                             for i in range(0, len(list(self.jass.hand_1))):
                                 if self.jass.hand_1[i].selected:
@@ -208,11 +212,11 @@ class GameController:
                             self.display_board()
                             self.display_hand()
                             pygame.display.flip()
+                            pygame.time.wait(PAUSE_TIME)
                             self.check_game_state()
                             return
 
                     elif self.jass.round_first_player == 2:
-
                         if mouseRect.colliderect(self.buttonRect):
                             for i in range(0, len(list(self.jass.hand_1))):
                                 if self.jass.hand_1[i].selected:
@@ -223,22 +227,23 @@ class GameController:
                             self.display_board()
                             self.display_hand()
                             pygame.display.flip()
+                            pygame.time.wait(PAUSE_TIME)
                             self.check_game_state()
                             return
 
                     elif self.jass.round_first_player == 3:
-
                         if mouseRect.colliderect(self.buttonRect):
                             for i in range(0, len(list(self.jass.hand_1))):
-
                                 if self.jass.hand_1[i].selected:
                                     card_selected = self.jass.hand_1[i]
+
                             self.jass.hand_1 = self.jass.play(self.jass.hand_1, card_selected)
                             self.jass.hand_2 = self.jass.ai_play(self.jass.hand_2)
                             self.jass.hand_3 = self.jass.ai_play(self.jass.hand_3)
                             self.display_board()
                             self.display_hand()
                             pygame.display.flip()
+                            pygame.time.wait(PAUSE_TIME)
                             self.check_game_state()
                             return
 
@@ -295,7 +300,6 @@ class GameController:
                         # self.start_up_init()
                         self.state = 1
                         self.play_init()
-
                         return
 
         # display background
@@ -342,6 +346,7 @@ class GameController:
             self.state += 1
             self.results_init()
             return
+
         elif self.jass.round < 8:
             self.jass.select_round_first()
             self.jass.board = []
