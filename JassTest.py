@@ -41,14 +41,4 @@ for i in range(0, 9):
     print("this round the first player is the player ", jass.round_first_player)
 
 
-jass = JassModel.Jass()
-jass.deck = jass.shuffle()
-
-jass.select_game_first()
-
-for i in range(0, 9):
-    player_card = random.choice(jass.hand_1)
-
-    jass.play_round(player_card)
-    print(jass.score)
 

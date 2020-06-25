@@ -3,7 +3,6 @@ import sys
 import pygame
 import JassModel
 
-
 # Montserrat font are from https://www.fontsquirrel.com/fonts/list/popular
 # card back from https://opengameart.org/content/colorful-poker-card-back
 
@@ -19,6 +18,7 @@ blue = pygame.Color(0, 0, 255)
 green = pygame.Color(0, 255, 0)
 
 ENDSCORE = 1000
+
 
 class GameController:
 
@@ -112,10 +112,12 @@ class GameController:
 
         # create the new variables
         self.cardLoc = {}
-        self.round = 0
-
         self.jass.shuffle()
+        self.jass.board = []
+        self.jass.round = None
         self.jass.select_game_first()
+        self.jass.select_round_first()
+        self.play_before_player()
 
         # setup the locations for each card in the hand
         x = 1 * int(self.scale * self.cardSize[0])
@@ -134,18 +136,18 @@ class GameController:
 
         self.youLoc = (self.cardLoc[0][0], self.cardLoc[0][1])
         # player 2
-        self.player2Loc = (50, HEIGHT/2)
-        self.player2TextLoc = (50, HEIGHT/2 - 50)
+        self.player2Loc = (50, HEIGHT / 2)
+        self.player2TextLoc = (50, HEIGHT / 2 - 50)
         self.player2Text = self.font.render("player 2", 1, black)
         self.player2Size = self.font.size("player 2")
         # player 3
-        self.player3Loc = (WIDTH/2, HEIGHT - 200)
-        self.player3TextLoc = (WIDTH/2, HEIGHT - 250)
+        self.player3Loc = (WIDTH / 2, HEIGHT - 200)
+        self.player3TextLoc = (WIDTH / 2, HEIGHT - 250)
         self.player3Text = self.font.render("player 3", 1, black)
         self.player3Size = self.font.size("player 3")
         # player 4
-        self.player4Loc = (WIDTH - 150, HEIGHT/2)
-        self.player4TextLoc = (WIDTH - 150, HEIGHT/2 - 50)
+        self.player4Loc = (WIDTH - 150, HEIGHT / 2)
+        self.player4TextLoc = (WIDTH - 150, HEIGHT / 2 - 50)
         self.player4Text = self.font.render("player 4", 1, black)
         self.player4Size = self.font.size("player 4")
 
@@ -178,35 +180,73 @@ class GameController:
                             temp.selected = not temp.selected
                             break
 
-                    # check if we clicked the playButton
-                    if mouseRect.colliderect(self.buttonRect):
-                        for i in range(0, len(list(self.jass.hand_1))):
-                            if self.jass.hand_1[i].selected:
-                                card_selected = self.jass.hand_1[i]
-                        self.jass.play_round(card_selected)
-                        self.round += 1
-                        if self.jass.score[0] >= ENDSCORE or self.jass.score[1] >= ENDSCORE:
-                            self.state += 1
-                            self.results_init()
+                    if self.jass.round_first_player == 0:
+                        # check if we clicked the playButton
+                        if mouseRect.colliderect(self.buttonRect):
+                            for i in range(0, len(list(self.jass.hand_1))):
+                                if self.jass.hand_1[i].selected:
+                                    card_selected = self.jass.hand_1[i]
+
+                            self.jass.hand_1 = self.jass.play(self.jass.hand_1, card_selected)
+                            self.jass.hand_2 = self.jass.ai_play(self.jass.hand_2)
+                            self.jass.hand_3 = self.jass.ai_play(self.jass.hand_3)
+                            self.jass.hand_4 = self.jass.ai_play(self.jass.hand_4)
+                            self.display_board()
+                            self.display_hand()
+                            pygame.display.flip()
+                            self.check_game_state()
                             return
-                        if self.round == 9:
-                            self.jass.round = None
-                            self.play_init()
+
+                    elif self.jass.round_first_player == 1:
+
+                        if mouseRect.colliderect(self.buttonRect):
+                            for i in range(0, len(list(self.jass.hand_1))):
+                                if self.jass.hand_1[i].selected:
+                                    card_selected = self.jass.hand_1[i]
+
+                            self.jass.hand_1 = self.jass.play(self.jass.hand_1, card_selected)
+                            self.display_board()
+                            self.display_hand()
+                            pygame.display.flip()
+                            self.check_game_state()
+                            return
+
+                    elif self.jass.round_first_player == 2:
+
+                        if mouseRect.colliderect(self.buttonRect):
+                            for i in range(0, len(list(self.jass.hand_1))):
+                                if self.jass.hand_1[i].selected:
+                                    card_selected = self.jass.hand_1[i]
+
+                            self.jass.hand_1 = self.jass.play(self.jass.hand_1, card_selected)
+                            self.jass.hand_2 = self.jass.ai_play(self.jass.hand_2)
+                            self.display_board()
+                            self.display_hand()
+                            pygame.display.flip()
+                            self.check_game_state()
+                            return
+
+                    elif self.jass.round_first_player == 3:
+
+                        if mouseRect.colliderect(self.buttonRect):
+                            for i in range(0, len(list(self.jass.hand_1))):
+
+                                if self.jass.hand_1[i].selected:
+                                    card_selected = self.jass.hand_1[i]
+                            self.jass.hand_1 = self.jass.play(self.jass.hand_1, card_selected)
+                            self.jass.hand_2 = self.jass.ai_play(self.jass.hand_2)
+                            self.jass.hand_3 = self.jass.ai_play(self.jass.hand_3)
+                            self.display_board()
+                            self.display_hand()
+                            pygame.display.flip()
+                            self.check_game_state()
                             return
 
         # display background
         SCREEN.blit(self.background, (-320, -100))
 
-        # display the player's hand
-        for index in range(len(self.jass.hand_1)):
-            if not list(self.jass.hand_1)[index].selected:
-                SCREEN.blit(self.images[str(self.jass.hand_1[index])], self.cardLoc[index])
-            else:
-                selectFX = self.images[str(self.jass.hand_1[index])].convert()
-                selectFX.set_alpha(128)
-                SCREEN.blit(selectFX, self.cardLoc[index])
-
-        # display other player
+        # display  players
+        self.display_hand()
         SCREEN.blit(self.cardBack, self.player2Loc)
         SCREEN.blit(self.player2Text, self.player2TextLoc)
         SCREEN.blit(self.cardBack, self.player3Loc)
@@ -219,10 +259,10 @@ class GameController:
         pygame.draw.rect(SCREEN, black, self.buttonRectOutline, 2)
         SCREEN.blit(self.playButton, self.buttonLoc)
 
-        # display the scoreboard
+        # display the scoreboard, hand, board
         self.display_scoreboard()
-        self.display_board(WIDTH/3, HEIGHT/3)
-
+        self.display_hand()
+        self.display_board()
         pygame.display.flip()
 
     def results_init(self):
@@ -273,12 +313,16 @@ class GameController:
         self.state = 1
         self.play()
 
-    def display_hand(self, hand, x, y):
-        for card in hand:
-            SCREEN.blit(self.images[str(card)], (x, y))
-            x += int(self.scale * self.cardSize[0])
+    def display_hand(self):
+        for index in range(len(self.jass.hand_1)):
+            if not list(self.jass.hand_1)[index].selected:
+                SCREEN.blit(self.images[str(self.jass.hand_1[index])], self.cardLoc[index])
+            else:
+                selectFX = self.images[str(self.jass.hand_1[index])].convert()
+                selectFX.set_alpha(128)
+                SCREEN.blit(selectFX, self.cardLoc[index])
 
-    def display_board(self, x, y):
+    def display_board(self, x=WIDTH / 3, y=HEIGHT / 3):
         for card in range(0, len(self.jass.board)):
             SCREEN.blit(self.images[str(self.jass.board[card])], (x, y))
             x += int(self.scale * self.cardSize[0])
@@ -291,7 +335,47 @@ class GameController:
         SCREEN.blit(self.Team1_score, (x, y))
         SCREEN.blit(self.Team2_score, (x, y + 30))
 
-    def display_game_results(self, x=WIDTH/2 - 160, y=HEIGHT/2 - 100):
+    def check_game_state(self):
+        self.jass.add_round_score()
+
+        if self.jass.score[0] >= ENDSCORE or self.jass.score[1] >= ENDSCORE:
+            self.state += 1
+            self.results_init()
+            return
+        elif self.jass.round < 8:
+            self.jass.select_round_first()
+            self.jass.board = []
+            self.play_before_player()
+            return
+
+        elif self.jass.round == 8:
+            self.play_init()
+            for i in range(0, len(list(self.jass.hand_1))):
+                self.jass.hand_1[i].selected = False
+            return
+
+    def play_before_player(self):
+        # check if ai need to play
+        if self.jass.round_first_player == 0:
+            self.display_board()
+            pygame.display.flip()
+        elif self.jass.round_first_player == 1:
+            self.jass.hand_2 = self.jass.ai_play(self.jass.hand_2)
+            self.jass.hand_3 = self.jass.ai_play(self.jass.hand_3)
+            self.jass.hand_4 = self.jass.ai_play(self.jass.hand_4)
+            self.display_board()
+            pygame.display.flip()
+        elif self.jass.round_first_player == 2:
+            self.jass.hand_3 = self.jass.ai_play(self.jass.hand_3)
+            self.jass.hand_4 = self.jass.ai_play(self.jass.hand_4)
+            self.display_board()
+            pygame.display.flip()
+        elif self.jass.round_first_player == 3:
+            self.jass.hand_4 = self.jass.ai_play(self.jass.hand_4)
+            self.display_board()
+            pygame.display.flip()
+
+    def display_game_results(self, x=WIDTH / 2 - 160, y=HEIGHT / 2 - 100):
         # create labels for each player
         self.Team1_score = self.font.render("Team 1: " + str(self.game_results[0]), 1, black)
         self.Team2_score = self.font.render("Team 2: " + str(self.game_results[1]), 1, black)
@@ -313,13 +397,3 @@ if __name__ == "__main__":
         FPS.tick(30)
 
 pygame.quit()
-
-
-
-
-
-
-
-
-
-

@@ -108,33 +108,37 @@ class Hand:
 class Deck:
 
     def __init__(self):
-        self.deck = []
+        self.deck = list()
         for suit in ['H', 'S', 'C', 'D']:
             for rank in range(6, 15):
                 self.deck.append(Card(rank, suit))
-        list(self)
 
     def __str__(self):
         out = ""
-        for card in self.deck:
-            out += str(card) + ", "
+        for i in range(0, len(self.deck)):
+            out += str(self.deck[i]) + ", "
         return out
 
     def __getitem__(self, index):
         return self.deck[index]
+
+    def __len__(self):
+        return len(self.deck)
+
+    def __delitem__(self, i):
+        del self.deck[i]
 
     def random_order(self):
         # select random card
         # insert in new deck
         # return randomized deck
         temp = []
-        L = list(self)
         for i in range(0, 36):
-            draw = random.choice(L)
+            draw = random.choice(self.deck)
             temp.append(draw)
-            L.remove(draw)
+            self.deck.remove(draw)
 
-        self = temp
+        self.deck = temp
 
         return self
 
@@ -145,7 +149,6 @@ class Jass:
         self.deck = Deck()
         self.score = [0, 0]
         self.board = []
-        self.round = 0
         self.round = None
         self.game_first_player = None
         self.round_first_player = None
@@ -159,7 +162,7 @@ class Jass:
     def shuffle(self):
         # method to shuffle the deck of card
         # between game
-        self.deck = Deck().random_order()
+        self.deck.random_order()
 
         self.hand_1 = Hand(self.deck[0:9])
         self.hand_2 = Hand(self.deck[9:18])
@@ -179,7 +182,7 @@ class Jass:
             # Card(7, 0)
             L = []
             for i in range(0, 36):
-                L.append(int(list(self.deck)[i]))
+                L.append(int(self.deck[i]))
 
             if L.index(73) <= 8:
                 self.game_first_player = 0
@@ -221,6 +224,8 @@ class Jass:
             valid_card = [card for card in list(hand)]
         # other player must player either trump card
         # or the same card color as the 1st player
+        elif self.board and [card for card in list(hand) if card.suit == self.trump]:
+            valid_card = [card for card in list(hand) if (card.suit == self.trump or card.suit == self.board[0].suit)]
         elif self.board and [card for card in list(hand) if card.suit == self.board[0].suit]:
             valid_card = [card for card in list(hand) if card.suit == self.board[0].suit]
         # when players cannot play any cards, restriction
@@ -237,19 +242,50 @@ class Jass:
         # return the position on the board who won
         round_color = self.board[0].suit
         if self.round == 0:
-            self.trump = round_color
-        highest_valid_card = self.board[0]
-        winner = 0
-        # find highest ranking card
-        for i in range(1, 3):
-            if round_color == self.board[i].suit and highest_valid_card.rank < self.board[i].rank:
-                highest_valid_card = self.board[i]
-                winner = i
+            self.set_trump_card(round_color)
+        highest_trump_card = Card(0, "H")
+        highest_valid_card = Card(0, "H")
+        trump_winner = 0
+        normal_winner = 0
 
-        return winner
+        # check if trump card on board
+        # if yes, then check highest trump card !puur and nell!
+        # if not then find highest normal ranking card
+        for i in range(1, 4):
+            if self.board[i].suit == self.trump and highest_trump_card.rank < self.board[i].rank:
+                if self.board[i].rank == 11 and highest_trump_card != Card(11, self.trump):
+                    highest_trump_card = self.board[i]
+                    trump_winner = i
+                elif self.board[i].rank == 9 and highest_trump_card != Card(11, self.trump) \
+                        and highest_trump_card != Card(9, self.trump):
+                    highest_trump_card = self.board[i]
+                    trump_winner = i
+                else:
+                    highest_trump_card = self.board[i]
+                    trump_winner = i
+
+            elif round_color == self.board[i].suit and highest_valid_card.rank < self.board[i].rank:
+                highest_valid_card = self.board[i]
+                normal_winner = i
+            else:
+                continue
+
+        if trump_winner != 0:
+            return trump_winner
+        else:
+            return normal_winner
+
+    def set_trump_card(self, trump):
+        self.trump = trump
+        # set puur and nell
+        L = []
+        for i in range(0, 36):
+            L.append(int(self.deck[i]))
+        self.deck[L.index(int(Card(11, trump)))].value = 20
+        self.deck[L.index(int(Card(9, trump)))].value = 14
 
     def add_round_score(self):
-        winner = self.check_round_winner()
+        winner = (self.round_first_player + self.check_round_winner() + 1) % 4
         if self.round == 8:
             round_score = 5
         else:
@@ -265,28 +301,3 @@ class Jass:
         # TO DO: if 157 -> 257
 
         return self.score
-
-    def play_round(self, card_selected):
-        # play a 9 round game
-
-        # TO DO: add order change
-        # here human player always play first
-        self.select_round_first()
-        self.board = []
-
-        self.hand_1 = self.play(self.hand_1, card_selected)
-        self.hand_2 = self.ai_play(self.hand_2)
-        self.hand_3 = self.ai_play(self.hand_3)
-        self.hand_4 = self.ai_play(self.hand_4)
-
-        self.add_round_score()
-
-    def play_game(self, card_selected):
-
-        self.shuffle()
-        self.select_game_first()
-        self.round = 0
-
-        for i in range(0, 9):
-            self.play_round(card_selected)
-            self.round += 1
